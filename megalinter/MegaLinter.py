@@ -192,8 +192,8 @@ class Megalinter:
     # noinspection PyMethodMayBeStatic
     def get_workspace(self):
         default_workspace = config.get("DEFAULT_WORKSPACE", "")
-        github_workspace = config.get("GITHUB_WORKSPACE", "")
-        # Github action run without override of DEFAULT_WORKSPACE and using /tmp/lint
+        bitbucket_workspace = config.get("BITBUCKET_CLONE_DIR", "")
+        github_workspace = config.get("GITHUB_WORKSPACE", bitbucket_workspace)
         if (
             default_workspace == ""
             and github_workspace != ""
@@ -215,7 +215,6 @@ class Megalinter:
                 "Context: Docker run with override of DEFAULT_WORKSPACE for test cases"
             )
             return default_workspace
-        # Docker run test classes without override of DEFAULT_WORKSPACE
         elif os.path.isdir("/tmp/lint"):
             logging.debug(
                 "Context: Docker run test classes without override of DEFAULT_WORKSPACE"
@@ -245,7 +244,8 @@ class Megalinter:
             raise FileNotFoundError(
                 f"Unable to find a workspace to lint \n"
                 f"DEFAULT_WORKSPACE: {default_workspace}\n"
-                f"GITHUB_WORKSPACE: {github_workspace}"
+                f"GITHUB_WORKSPACE: {github_workspace}\n"
+                f"BITBUCKET_WORKSPACE: {bitbucket_workspace}"
             )
 
     # Manage configuration variables
@@ -392,6 +392,41 @@ class Megalinter:
             if len(linter.files) == 0 and linter.lint_all_files is False:
                 linter.is_active = False
 
+    def list_files_git_diff_bitbucket(self):
+        # List all updated files from git
+        logging.info(
+            "Listing updated files in ["
+            + self.github_workspace
+            + "] using git diff, then filter with:"
+        )
+
+        repo = git.Repo(
+            os.path.realpath(self.github_workspace)
+        )
+        with repo.config_writer() as repo_config:
+            site = config.get("BITBUCKET_GIT_HTTP_ORIGIN", "http")
+            repo_config.set_value(f"http \"{site}\"", "proxy", "http://host.docker.internal:29418").release()
+        # FIXME - debugging/discovery only
+        # repo = git.Repo(os.path.realpath(self.github_workspace))
+        reader = repo.config_reader()
+        for section in reader.sections():
+            if section is not None:
+                print(f"[{section}]")
+                for name, value in reader.items_all(section):
+                    print(f"\t{name}={value}")
+        # FIXME - debugging/discovery only - end section
+
+        current_branch = config.get("BITBUCKET_COMMIT", "")
+        if current_branch == "":
+            current_branch = repo.active_branch.commit.hexsha
+        repo.git.fetch("origin", current_branch)
+
+        default_branch = config.get("DEFAULT_BRANCH", "master")  # TODO fetch from API?
+        repo.git.fetch("origin", default_branch)
+
+        diff = repo.git.diff(f"FETCH_HEAD...{current_branch}", name_only=True, diff_filter="d")
+        return diff
+
     def list_files_git_diff(self):
         # List all updated files from git
         logging.info(
@@ -399,6 +434,19 @@ class Megalinter:
             + self.github_workspace
             + "] using git diff, then filter with:"
         )
+        if config.get("BITBUCKET_CLONE_DIR", "") != "":
+            diff = self.list_files_git_diff_bitbucket()
+        else:
+            diff = self.list_files_git_diff_github()
+
+        logging.info(f"Git diff :\n{diff}")
+        all_files = list()
+        for diff_line in diff.splitlines():
+            if os.path.isfile(self.workspace + os.path.sep + diff_line):
+                all_files += [self.workspace + os.path.sep + diff_line]
+        return all_files
+
+    def list_files_git_diff_github(self):
         repo = git.Repo(os.path.realpath(self.github_workspace))
         default_branch = config.get("DEFAULT_BRANCH", "master")
         current_branch = config.get("GITHUB_SHA", "")
@@ -415,12 +463,7 @@ class Megalinter:
         repo.git.checkout(default_branch)
         diff = repo.git.diff(f"{default_branch}...{current_branch}", name_only=True)
         repo.git.checkout(current_branch)
-        logging.info(f"Git diff :\n{diff}")
-        all_files = list()
-        for diff_line in diff.splitlines():
-            if os.path.isfile(self.workspace + os.path.sep + diff_line):
-                all_files += [self.workspace + os.path.sep + diff_line]
-        return all_files
+        return diff
 
     def list_files_all(self):
         # List all files under workspace root directory
