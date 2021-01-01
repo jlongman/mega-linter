@@ -406,15 +406,6 @@ class Megalinter:
         with repo.config_writer() as repo_config:
             site = config.get("BITBUCKET_GIT_HTTP_ORIGIN", "http")
             repo_config.set_value(f"http \"{site}\"", "proxy", "http://host.docker.internal:29418").release()
-        # FIXME - debugging/discovery only
-        # repo = git.Repo(os.path.realpath(self.github_workspace))
-        reader = repo.config_reader()
-        for section in reader.sections():
-            if section is not None:
-                print(f"[{section}]")
-                for name, value in reader.items_all(section):
-                    print(f"\t{name}={value}")
-        # FIXME - debugging/discovery only - end section
 
         current_branch = config.get("BITBUCKET_COMMIT", "")
         if current_branch == "":
