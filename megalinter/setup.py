@@ -1,5 +1,5 @@
 from setuptools import setup
-from pylib.setup import megalinter_install_requires
+from pylib.requires import megalinter_install_requires
 setup(
     name="megalinter",
     version="0.1",

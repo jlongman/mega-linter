@@ -30,7 +30,6 @@ RUN apk add --update --no-cache \
 ################################
 # Installs python dependencies #
 ################################
-COPY megalinter /megalinter
 COPY pylib /pylib
 RUN python /pylib/setup.py install --user
 
