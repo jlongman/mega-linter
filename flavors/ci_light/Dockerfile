@@ -11,7 +11,8 @@
 #FROM__START
 FROM hadolint/hadolint:latest-alpine as dockerfile-lint
 #FROM__END
-
+FROM jlongman/mega-linter-pylib:test as mega-linter-pylib
+#FROM jlongman/mega-linter-pylib:v$GITHUB_VERSION as mega-linter-pylib
 ##################
 # Get base image #
 ##################
@@ -110,7 +111,7 @@ RUN git config --global core.autocrlf true
 COPY --from=dockerfile-lint /bin/hadolint /usr/bin/hadolint
 
 # dotenv-linter installation
-RUN wget -q -O - https://raw.githubusercontent.com/dotenv-linter/dotenv-linter/master/install.sh | sh -s
+#RUN wget -q -O - https://raw.githubusercontent.com/dotenv-linter/dotenv-linter/master/install.sh | sh -s
 
 #OTHER__END
 
@@ -124,8 +125,11 @@ ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]
 ################################
 # Installs python dependencies #
 ################################
+
 COPY megalinter /megalinter
-RUN python /megalinter/setup.py install
+COPY pylib /megalinter/pylib
+COPY --from=mega-linter-pylib /root/.local/ /root/.local/
+RUN python /megalinter/setup.py install --user
 
 #######################################
 # Copy scripts and rules to container #
