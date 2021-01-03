@@ -174,11 +174,32 @@ def check_updated_file(file, repo_home):
     return False
 
 
-def normalize_log_string(str_in):
-    return (
-        ANSI_ESCAPE_REGEX.sub("", str_in)  # Remove ANSI escape sequences (ANSI colors)
+def remove_workspace(path):
+    # todo there's probably a better way to do this
+    clean = (
+        path.strip()
         .replace("/tmp/lint/", "")
         .replace("tmp/lint/", "")
         .replace("/github/workspace/", "")
         .replace("github/workspace/", "")
+        .replace("/github/workspace/", "")
+        .replace("github/workspace/", "")
     )
+    if config.get("BITBUCKET_CLONE_DIR", "false") != "false":
+        clone = config.get("BITBUCKET_CLONE_DIR")
+        clone_start = ""
+        if not clone.startswith("/"):
+            clone_start = "/"
+        clone_end = ""
+        if not clone.endswith("/"):
+            clone_end = "/"
+        clone = f"{clone_start}{clone}{clone_end}"
+        clean = clean.replace(clone, "").replace(clone[1:], "")
+
+    return clean
+
+
+def normalize_log_string(str_in):
+    clean = ANSI_ESCAPE_REGEX.sub("", str_in)
+    clean = remove_workspace(clean)
+    return clean
