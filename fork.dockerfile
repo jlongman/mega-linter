@@ -22,7 +22,7 @@ COPY megalinter /megalinter
 COPY pylib /megalinter/pylib
 COPY --from=mega-linter-pylib /root/.local/ /root/.local/
 # should be redundant
-RUN python /megalinter/setup.py install --user
+RUN python /megalinter/setup.py install --force --user
 
 #######################################
 # Copy scripts and rules to container #

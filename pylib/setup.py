@@ -1,6 +1,5 @@
-from setuptools import setup
-
 import requires
+from setuptools import setup
 
 setup(
     name="megalinter-pylib",
