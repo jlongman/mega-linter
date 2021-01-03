@@ -1,0 +1,33 @@
+Example
+=======
+
+   >>> in_messages = """\nIn /opt/atlassian/pipelines/agent/build/scripts/jenkins/lvs-stack-outpus.sh line 16:\naws s3 cp s3://${ENVNAME}-service-discovery/${STACK_PREFIX}LiveModels.service.url -\n\n             ^--------^ SC2086: Double quote to prevent globbing and word splitting.\n                                          ^-------------^ SC2086: Double quote to prevent globbing and word splitting.\nDid you mean:\naws s3 cp s3://"${ENVNAME}"-service-discovery/"${STACK_PREFIX}"LiveModels.service.url -\n"""
+   >>> import io
+   >>> import itertools
+   >>> from lib.bb.shellcheck import Parser
+
+Now test it:
+
+   >>> Parser("a", "b", "c").parse(in_messages)
+   [{'parser': 'a', 'file_type': 'b', 'file': 'c', 'line': 16, 'level': 'MEDIUM', 'severity': 'MEDIUM', 'message': 'aws s3 cp s3://${ENVNAME}-service-discovery/${STACK_PREFIX}LiveModels.service.url - ^--------^ SC2086: Double quote to prevent globbing and word splitting. ^-------------^ SC2086: Double quote to prevent globbing and word splitting. Did you mean: aws s3 cp s3://"${ENVNAME}"-service-discovery/"${STACK_PREFIX}"LiveModels.service.url -'}]
+
+Example 2
+=========
+
+   >>> in_messages = """\nIn /opt/atlassian/pipelines/agent/build/scripts/jenkins/lvs-stack-outpus.sh line 66:\nxxx"""
+
+Now test it:
+
+   >>> Parser("a", "b", "c").parse(in_messages)
+   [{'parser': 'a', 'file_type': 'b', 'file': 'c', 'line': 66, 'level': 'MEDIUM', 'severity': 'MEDIUM', 'message': 'xxx'}]
+
+Example 3
+=========
+
+   >>> in_messages = """\nIn /filename line 6:\nxxx\nIn /namefile line 9:\nyyy"""
+
+Now test it:
+
+   >>> Parser("a", "b", "c").parse(in_messages)
+   [{'parser': 'a', 'file_type': 'b', 'file': 'c', 'line': 6, 'level': 'MEDIUM', 'severity': 'MEDIUM', 'message': 'xxx'}, {'parser': 'a', 'file_type': 'b', 'file': 'c', 'line': 9, 'level': 'MEDIUM', 'severity': 'MEDIUM', 'message': 'yyy'}]
+

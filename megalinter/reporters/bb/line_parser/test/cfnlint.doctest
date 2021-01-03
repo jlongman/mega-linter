@@ -1,0 +1,32 @@
+Example
+=======
+
+
+
+# docker run -v $PWD/./cloudformation/templates/yaml/prod:/tmp/lint -e RUN_LOCAL=true
+#    -eVALIDATE_CLOUDFORMATION=true  --rm -it jlongman/super-linter:stable
+# 2020-08-17 00:55:36 [ERROR ]   [W1001 Ref to resource "AdminScale" that may not be available when condition "IsProd" is False at Outputs/AdminAutoScalingGroup/Value/Ref
+# /tmp/lint/cloudformation/templates/yaml/prod/90.manyvids-app-prod.cf.yaml:44:5
+#
+# W3005 Obsolete DependsOn on resource (MvWebAccessSG), dependency already enforced by a "Ref" at Resources/MvInternalSG/Properties/SecurityGroupIngress/0/SourceSecurityGroupId/Ref
+# /tmp/lint/cloudformation/templates/yaml/prod/90.manyvids-app-prod.cf.yaml:123:5
+
+   >>> import io
+   >>> import itertools
+   >>> from cfnlint import Parser
+   >>> in_messages = 'W1001 Ref to resource "AdminScale" that may not be available when condition "IsProd" is False at Outputs/AdminAutoScalingGroup/Value/Ref /tmp/lint/cloudformation/templates/yaml/prod/90.manyvids-app-prod.cf.yaml:44:5'
+
+Now test it:
+
+   >>> Parser("a", "b", "c").parse(in_messages)
+   [{'parser': 'a', 'file_type': 'b', 'file': 'c', 'line': 44, 'column': 5, 'level': 'MEDIUM', 'severity': 'MEDIUM', 'message': 'W1001 Ref to resource "AdminScale" that may not be available when condition "IsProd" is False at Outputs/AdminAutoScalingGroup/Value/Ref /tmp/lint/cloudformation/templates/yaml/prod/90.manyvids-app-prod.cf.yaml'}]
+
+Example 2
+=========
+
+   >>> in_messages = """W7001 Mapping 'Revisions' is defined but not used /opt/atlassian/pipelines/agent/build/cloudformation/templates/yaml/70.wowza-deployment.cf.yaml:29:3\nW7001 Mapping 'Package' is defined but not used /opt/atlassian/pipelines/agent/build/cloudformation/templates/yaml/70.wowza-deployment.cf.yaml:47:3"""
+
+Now test it:
+
+   >>> Parser("a", "b", "c").parse(in_messages)
+   [{'parser': 'a', 'file_type': 'b', 'file': 'c', 'line': 29, 'column': 3, 'level': 'MEDIUM', 'severity': 'MEDIUM', 'message': "W7001 Mapping 'Revisions' is defined but not used /opt/atlassian/pipelines/agent/build/cloudformation/templates/yaml/70.wowza-deployment.cf.yaml"}, {'parser': 'a', 'file_type': 'b', 'file': 'c', 'line': 47, 'column': 3, 'level': 'MEDIUM', 'severity': 'MEDIUM', 'message': "W7001 Mapping 'Package' is defined but not used /opt/atlassian/pipelines/agent/build/cloudformation/templates/yaml/70.wowza-deployment.cf.yaml"}]
