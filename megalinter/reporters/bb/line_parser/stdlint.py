@@ -74,10 +74,15 @@ class Parser(lint2bb_parser):
                 except ValueError:
                     pass
             return data
+        except ValueError as e:
+            logging.debug(e)
+
+            logging.debug(f"[stdlint bb line_parser] skipping \"{raw_line}\" due to {e}")
+            return None
         except Exception as e:
             logging.error(e)
 
-            logging.info(f"[stdlint bb line_parser] skipping {raw_line} due to {e}")
+            logging.info(f"[stdlint bb line_parser] skipping \"{raw_line}\" due to {e}")
             return None
 
     @staticmethod
