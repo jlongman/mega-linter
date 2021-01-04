@@ -1,0 +1,9 @@
+
+
+
+/tmp/lint/infrastructure/docker/maxwell/Dockerfile:11 DL3008 Pin versions in apt get install. Instead of `apt-get install <package>` use `apt-get install <package>=<version>`
+/tmp/lint/infrastructure/docker/maxwell/Dockerfile:11 DL3009 Delete the apt-get lists after installing something
+/tmp/lint/infrastructure/docker/maxwell/Dockerfile:11 DL3013 Pin versions in pip. Instead of `pip install <package>` use `pip install <package>==<version>` or `pip install --requirement <requirements file>`
+/tmp/lint/infrastructure/docker/maxwell/Dockerfile:11 DL3015 Avoid additional packages by specifying `--no-install-recommends`
+/tmp/lint/infrastructure/docker/maxwell/Dockerfile:11 DL3042 Avoid use of cache directory with pip. Use `pip install --no-cache-dir <package>`
+/tmp/lint/infrastructure/docker/maxwell/Dockerfile:15 DL3025 Use arguments JSON notation for CMD and ENTRYPOINT arguments
