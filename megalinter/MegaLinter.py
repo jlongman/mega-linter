@@ -400,12 +400,12 @@ class Megalinter:
             + "] using git diff, then filter with:"
         )
 
-        repo = git.Repo(
-            os.path.realpath(self.github_workspace)
-        )
+        repo = git.Repo(os.path.realpath(self.github_workspace))
         with repo.config_writer() as repo_config:
             site = config.get("BITBUCKET_GIT_HTTP_ORIGIN", "http")
-            repo_config.set_value(f"http \"{site}\"", "proxy", "http://host.docker.internal:29418").release()
+            repo_config.set_value(
+                f'http "{site}"', "proxy", "http://host.docker.internal:29418"
+            ).release()
 
         current_branch = config.get("BITBUCKET_COMMIT", "")
         if current_branch == "":
