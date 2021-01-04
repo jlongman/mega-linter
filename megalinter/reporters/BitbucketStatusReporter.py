@@ -126,7 +126,7 @@ class BitbucketStatusReporter(Reporter):
                     self.master.linter_name, file_type, utils.remove_workspace(file)
                 )
                 result = parser.parse(stdout)
-                if self.master.total_number_errors > 0:
+                if self.master.number_errors > 0:
                     self.submit_report(
                         "na",
                         "PENDING",
@@ -135,11 +135,11 @@ class BitbucketStatusReporter(Reporter):
                         self.master.linter_name,
                     )
                 self.annotate_batch(
-                    self.master.linter_name, self.master.total_number_errors, result
+                    self.master.linter_name, self.master.number_errors, result
                 )
 
                 logging.debug(
-                    f"[bitbucket api] reported {self.master.total_number_errors} annotations"
+                    f"[bitbucket api] reported {self.master.number_errors} annotations"
                 )
             except Exception as e:
                 logging.warning(
