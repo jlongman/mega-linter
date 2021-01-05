@@ -6,7 +6,7 @@ from megalinter.reporters.bb.line_parser import lint2bb_parser
 
 class Parser(lint2bb_parser):
     def __init__(self, linter, file_type, file):
-        lint2bb_parser.__init__(self, linter, file_type, file)
+        super().__init__(linter, file_type, file)
 
     def parse(self, stdout):
         events = []
@@ -66,6 +66,7 @@ class Parser(lint2bb_parser):
                 "level": "HIGH",
                 "message": message,
                 "severity": "HIGH",
+                "result": "FAILED",
             }
 
             if column is not None:
