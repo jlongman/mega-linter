@@ -22,7 +22,7 @@ class Parser(stdlint.Parser):
         {'parser': 'a', 'file_type': 'b', 'file': 'c', 'line': 999, 'level': 'HIGH', 'message': \
 'xxx', 'severity': 'HIGH'}
         >>> Parser("a","b","c").process_line("xxxxx")
-        
+
         """
         return super().process_line(raw_line)
 

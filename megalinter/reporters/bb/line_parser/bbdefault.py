@@ -7,7 +7,7 @@ DEFAULT_ERROR_LEVEL = "MEDIUM"
 
 class Parser(lint2bb_parser):
     def __init__(self, linter, file_type, file):
-        lint2bb_parser.__init__(self, linter, file_type, file)
+        super().__init__(linter, file_type, file)
 
     def parse(self, stdout):
         messages = io.StringIO(stdout)
@@ -22,6 +22,7 @@ class Parser(lint2bb_parser):
             "level": DEFAULT_ERROR_LEVEL,
             "severity": DEFAULT_ERROR_LEVEL,
             "message": read_message,
+            "result": "FAILED",
         }
         if summary is not None:
             event["summary"] = summary

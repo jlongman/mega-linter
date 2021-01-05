@@ -55,6 +55,7 @@ class Parser(lint2bb_parser):
             "level": ERROR_LEVEL,
             "severity": ERROR_LEVEL,
             "message": last_message,
+            "result": "FAILED",
         }
         if summary is not None:
             event["summary"] = summary

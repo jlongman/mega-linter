@@ -7,7 +7,7 @@ ERROR_LEVEL = "MEDIUM"
 
 class Parser(lint2bb_parser):
     def __init__(self, linter, file_type, file):
-        lint2bb_parser.__init__(self, linter, file_type, file)
+        super().__init__(linter, file_type, file)
 
     def parse(self, stdout):
         messages = io.StringIO(stdout)
@@ -40,6 +40,7 @@ class Parser(lint2bb_parser):
             "column": int(column),
             "level": ERROR_LEVEL,
             "severity": ERROR_LEVEL,
+            "result": "FAILED",
             "message": last_message,
         }
         if summary is not None:

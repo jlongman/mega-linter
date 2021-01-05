@@ -16,7 +16,7 @@ def get_level(level):
 
 class Parser(lint2bb_parser):
     def __init__(self, linter, file_type, file):
-        lint2bb_parser.__init__(self, linter, file_type, file)
+        super().__init__(linter, file_type, file)
 
     def parse(self, stdout):
         errors = []
@@ -50,6 +50,7 @@ class Parser(lint2bb_parser):
                         "message": message,
                         "summary": message,
                         "severity": get_level(level),
+                        "result": "FAILED",
                     }
                 )
             # else:
