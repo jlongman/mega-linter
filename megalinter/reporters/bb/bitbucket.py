@@ -27,7 +27,7 @@ def report(report_name, report_data):
 
 def annotate_single(report_name, this_count, event):
     document = get_annotation_document(event, this_count)
-    annotation_url = f"{get_report_url(report_name)}/annotations/{this_count}"
+    annotation_url = f"{get_report_url(report_name)}/annotations/{document['external_id']}"
     return call_bitbucket("put", annotation_url, document)
 
 
@@ -58,10 +58,8 @@ def get_annotation_document(data, this_count):
 
     annotation = {
         "external_id": f'mega-{data["parser"]}-{data["file_type"]}-{this_count}',
-        "title": f'{data["parser"]} - {data["file_type"]}',
         "summary": summary,
         "annotation_type": "BUG",
-        "reporter": "megalint",
     }
     if "result" in data:
         annotation["result"] = data["result"]
@@ -73,21 +71,10 @@ def get_annotation_document(data, this_count):
         if isinstance(data["line"], int) and int(data["line"]) > 0:
             annotation["line"] = data["line"]
         else:
-            logging.warning(
-                f"[bitbucket api] Unexpected data['line']: {data['line']}",
-                file=sys.stderr,
-            )
+            logging.warning(f"[bitbucket api] Unexpected data['line']: {data['line']}")
     if "column" in data:
-        annotation["column"] = data["column"]
-    if "safe" in data:
-        safe = data["safe"]
-    else:
-        safe = False
-    annotation["data"] = [{"title": "Safe to merge?", "type": "BOOLEAN", "value": safe}]
-    if "duration" in data:
-        annotation["data"].append(
-            {"title": "Duration (s)", "type": "DURATION", "value": data["duration"]}
-        )
+        if isinstance(data["column"], int) and int(data["column"]) > 0:
+            annotation["column"] = data["column"]
     return annotation
 
 

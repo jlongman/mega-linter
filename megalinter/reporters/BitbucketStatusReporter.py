@@ -40,6 +40,7 @@ def get_descriptions(linter):
 # todo this isn't the right axis
 class Overview:
     def __init__(self):
+        self.seen = {"": 0}
         self.linter_pass_count = 0
         self.linter_pass_duration = 0
         self.linter_fail_count = 0
@@ -115,35 +116,41 @@ class BitbucketStatusReporter(Reporter):
         bitbucket.annotate_single(report_name, this_count, event)
 
     def add_report_item(self, file, status_code, stdout, index, fixed=False):
+        linter = self.master
+        if linter.linter_name not in BitbucketStatusReporter.overview.seen:
+            BitbucketStatusReporter.overview.seen[linter.linter_name] = (len(BitbucketStatusReporter.overview.seen) + 1) * 1000
+
         if status_code > 0:
-            if len(self.master.file_extensions) > 0:
-                file_type = self.master.file_extensions[0].replace(".", "")
+            report_name = "mega-linter"
+            if config.get('BITBUCKET_SEPARATE_REPORTS', 'false') == 'true':
+                report_name = f"{report_name}-${linter.linter_name}"
+
+            if len(linter.file_extensions) > 0:
+                file_type = linter.file_extensions[0].replace(".", "")
             else:
                 file_type = ""
             # todo I forget how file_type is used, it may be better to rsplit
             try:
                 parser = self.init_output_parser().Parser(
-                    self.master.linter_name, file_type, utils.remove_workspace(file)
+                    linter.linter_name, file_type, utils.remove_workspace(file)
                 )
-                result = parser.parse(stdout)
-                if self.master.number_errors > 0:
+                annotations = parser.parse(stdout)
+                if linter.number_errors > 0:
+                    BitbucketStatusReporter.overview.seen[linter.linter_name] += len(annotations)
+                    message = f"Processing {linter.linter_name} - {linter.number_errors} for {len(linter.files)}"
                     self.submit_report(
-                        "na",
-                        "PENDING",
-                        False,
-                        self.master.elapsed_time_s,
-                        self.master.linter_name,
+                        message, "PENDING", False, linter.elapsed_time_s, report_name, linter.linter_name
                     )
                 self.annotate_batch(
-                    self.master.linter_name, self.master.number_errors, result
+                    report_name, BitbucketStatusReporter.overview.seen[linter.linter_name], annotations
                 )
 
                 logging.debug(
-                    f"[bitbucket api] reported {self.master.number_errors} annotations"
+                    f"[bitbucket api] reported {linter.number_errors} annotations"
                 )
             except Exception as e:
                 logging.warning(
-                    f"[bitbucket api] skipping {self.master.linter_name} - error parsing report items: {e}"
+                    f"[bitbucket api] skipping {linter.linter_name} - error parsing report items: {e}"
                 )
 
     def produce_report(self):
@@ -152,8 +159,6 @@ class BitbucketStatusReporter(Reporter):
             and config.exists("BITBUCKET_REPO_SLUG")
             and config.exists("BITBUCKET_COMMIT")
         ):
-            result, safe = get_descriptions(self.master)
-
             linter = self.master
             if linter.is_active:
                 if linter.cli_lint_mode == "project":
@@ -161,47 +166,39 @@ class BitbucketStatusReporter(Reporter):
                 else:
                     found = f"{len(linter.files)} files"
                 errors = str(linter.number_errors)
-
-                if linter.number_errors == 0:
-                    BitbucketStatusReporter.overview.linter_pass_count += 1
-                    BitbucketStatusReporter.overview.linter_pass_duration += (
-                        linter.elapsed_time_s
-                    )
-                    elapsed_time = BitbucketStatusReporter.overview.linter_pass_duration
-                    linter_count = BitbucketStatusReporter.overview.linter_pass_count
-                    message = f"{linter_count} linters succeeded on {found}"
-                    linter_name = "pass"
-                else:
-                    BitbucketStatusReporter.overview.linter_fail_count += 1
-                    BitbucketStatusReporter.overview.errors_count += (
-                        linter.number_errors
-                    )
-                    elapsed_time = linter.elapsed_time_s
-                    total_errors = BitbucketStatusReporter.overview.errors_count
-                    message = f"This linter found problems in {errors}/{total_errors} for {found}"
-                    linter_name = linter.linter_name
-
-                self.submit_report(message, result, safe, elapsed_time, linter_name)
-                if linter.number_errors == 0:
-                    total_linters = (
-                        BitbucketStatusReporter.overview.linter_fail_count
-                        + BitbucketStatusReporter.overview.linter_pass_count
-                    )
-                    summary = f"{linter.linter_name} good on {len(linter.files)} files with {linter.file_extensions} extensions"
-                    if len(self.master.file_extensions) > 0:
-                        file_type = self.master.file_extensions[0].replace(".", "")
+                BitbucketStatusReporter.overview.linter_pass_count += 1
+                BitbucketStatusReporter.overview.linter_pass_duration += linter.elapsed_time_s
+                report_name = "mega-linter"
+                sub_report_name = None
+                if config.get('BITBUCKET_SEPARATE_REPORTS', 'false') == 'true':
+                    result, safe = get_descriptions(self.master)
+                    if linter.number_errors == 0:
+                        elapsed_time = BitbucketStatusReporter.overview.linter_pass_duration
+                        linter_count = BitbucketStatusReporter.overview.linter_pass_count
+                        message = f"{linter_count} linters succeeded on {found}"
+                        sub_report_name = "pass"
                     else:
-                        file_type = ""
-                    event = {
-                        "parser": "pass",
-                        "file_type": file_type,
-                        "message": "",
-                        "result": "PASSED",
-                        "summary": summary,
-                        "duration": linter.elapsed_time_s,
-                        "safe": True,
-                    }
-                    self.annotate_single("pass", total_linters, event)
+                        elapsed_time = linter.elapsed_time_s
+                        total_errors = BitbucketStatusReporter.overview.errors_count
+                        message = f"This linter found problems in {errors}/{total_errors} for {found}"
+                        sub_report_name = linter.linter_name
+                    report_name = f"{report_name}-{sub_report_name}"
+                else:
+                    elapsed_time = BitbucketStatusReporter.overview.linter_pass_duration
+                    total_errors = BitbucketStatusReporter.overview.errors_count
+                    safe = total_errors == 0
+                    result = (
+                        "PASSED"
+                        if safe
+                        else
+                        "FAILED"
+                    )
+                    message = f"Mega linter found problems in {total_errors} for {found}"
+                self.submit_report(message, result, safe, elapsed_time, report_name, sub_report_name)
+
+                if linter.number_errors == 0:
+                    # produce the pass report - collects the linters which pass
+                    self.annotate_linter_pass(sub_report_name)
                 else:
                     pass  # todo
             else:
@@ -211,13 +208,39 @@ class BitbucketStatusReporter(Reporter):
                 f"Skipped post of Bitbucket Status for {self.master.descriptor_id} with {self.master.linter_name}"
             )
 
+    def annotate_linter_pass(self, suffix=None):
+        linter = self.master
+        report_name = "mega-linter"
+        if suffix is not None:
+            report_name = f"{report_name}-{suffix}"
+        total_linters = (
+            BitbucketStatusReporter.overview.linter_fail_count
+            + BitbucketStatusReporter.overview.linter_pass_count
+        )
+        summary = f"{linter.linter_name} found no errors on {len(linter.files)} files with {linter.file_extensions} extensions"
+        if len(linter.file_extensions) > 0:
+            file_type = linter.file_extensions[0].replace(".", "")
+        else:
+            file_type = ""
+        event = {
+            "parser": "pass",
+            "file_type": file_type,
+            "result": "PASSED",
+            "summary": summary,
+            "message": summary,
+            "duration": linter.elapsed_time_s,
+            "safe": True,
+        }
+        self.annotate_single(report_name, total_linters, event)
+
     @deco
-    def submit_report(self, message, result, safe, duration, suffix):
-        if not suffix:
+    def submit_report(self, message, result, safe, duration, report_name, linter_name):
+        if not linter_name:
+            reporter = report_name
             title = "Mega-Linter scan report"
         else:
-            title = f"Mega-Linter {suffix} scan report"
-        reporter = f"mega-linter-{suffix}"
+            reporter = linter_name
+            title = f"Mega-Linter {reporter} scan report"
         data = {
             "title": title,
             "details": message,
@@ -225,11 +248,12 @@ class BitbucketStatusReporter(Reporter):
             "reporter": reporter,
             "result": result,
             "data": [
-                {"title": "Duration (seconds)", "type": "DURATION", "value": duration},
                 {"title": "Safe to merge?", "type": "BOOLEAN", "value": safe},
             ],
         }
-        bitbucket.report(suffix, data)
+        if duration is not None:
+            data["data"].append({"title": "Duration (seconds)", "type": "DURATION", "value": duration}, )
+        bitbucket.report(report_name, data)
 
     def init_output_parser(self):
         try:
