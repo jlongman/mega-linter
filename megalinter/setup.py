@@ -8,7 +8,14 @@ setup(
     author="Nicolas Vuillamy",
     author_email="nicolas.vuillamy@gmail.com",
     license="MIT",
-    packages=["megalinter", "megalinter.linters", "megalinter.reporters"],
+    packages=[
+        "megalinter",
+        "megalinter.linters",
+        "megalinter.reporters",
+        "megalinter.reporters.bb",
+        "megalinter.reporters.bb.line_parser",
+    ],
     install_requires=megalinter_install_requires,
+
     zip_safe=False,
 )
