@@ -1,5 +1,5 @@
 from setuptools import setup
-
+from pylib.requires import megalinter_install_requires
 setup(
     name="megalinter",
     version="0.1",
@@ -9,23 +9,6 @@ setup(
     author_email="nicolas.vuillamy@gmail.com",
     license="MIT",
     packages=["megalinter", "megalinter.linters", "megalinter.reporters"],
-    install_requires=[
-        "gitpython",
-        "jsonschema",
-        "multiprocessing_logging",
-        "pygithub",
-        "pytablewriter",
-        "pytest-cov",
-        "pytest-timeout",
-        "pyyaml",
-        "requests==2.24.0",
-        "terminaltables",
-        "webpreview",
-        "yq",
-        "mkdocs-material",
-        "mdx_truly_sane_lists",
-        "beautifulsoup4",
-        "giturlparse",
-    ],
+    install_requires=megalinter_install_requires,
     zip_safe=False,
 )
