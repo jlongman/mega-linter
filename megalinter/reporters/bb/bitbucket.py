@@ -61,10 +61,16 @@ def get_annotation_document(data, this_count):
         "summary": summary,
         "annotation_type": "BUG",
     }
-    if "result" in data:
+    if "result" in data and data["result"] in ["PASSED", "FAILED", "IGNORED", "SKIPPED"]:
         annotation["result"] = data["result"]
+    else:
+        annotation["result"] = "FAILED"
     if "file" in data:
         annotation["path"] = data["file"]
+    if "link" in data:
+        annotation["link"] = data["link"]
+    if "severity" in data and data["severity"] in ["HIGH", "MEDIUM", "LOW", "CRITICAL"]:
+        annotation["severity"] = data["severity"]
     if summary != detail:  # only add detail when necessary
         annotation["details"] = detail
     if "line" in data:
