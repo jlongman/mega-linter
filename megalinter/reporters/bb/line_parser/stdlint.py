@@ -20,7 +20,13 @@ class Parser(lint2bb_parser):
             if event is not None:
                 events.append(event)
             raw_line = messages.readline()
+        event = self.finished()
+        if event is not None:
+            events.append(event)
         return events
+
+    def finished(self):
+        return None
 
     def process_line(self, raw_line):
         """
