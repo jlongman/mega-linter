@@ -4,7 +4,7 @@ Example
    >>> in_messages = """\nIn /opt/atlassian/pipelines/agent/build/scripts/jenkins/lvs-stack-outpus.sh line 16:\naws s3 cp s3://${ENVNAME}-service-discovery/${STACK_PREFIX}LiveModels.service.url -\n\n             ^--------^ SC2086: Double quote to prevent globbing and word splitting.\n                                          ^-------------^ SC2086: Double quote to prevent globbing and word splitting.\nDid you mean:\naws s3 cp s3://"${ENVNAME}"-service-discovery/"${STACK_PREFIX}"LiveModels.service.url -\n"""
    >>> import io
    >>> import itertools
-   >>> from lib.bb.shellcheck import Parser
+   >>> from megalinter.reporters.bb.line_parser.shellcheck import Parser
 
 Now test it:
 
