@@ -1,0 +1,18 @@
+megalinter_install_requires = [
+    "gitpython",
+    "jsonschema",
+    "multiprocessing_logging",
+    "pygithub",
+    "pytablewriter",
+    "pytest-cov",
+    "pytest-timeout",
+    "pyyaml",
+    "requests==2.24.0",
+    "terminaltables",
+    "webpreview",
+    "yq",
+    "mkdocs-material",
+    "mdx_truly_sane_lists",
+    "beautifulsoup4",
+    "giturlparse",
+]
