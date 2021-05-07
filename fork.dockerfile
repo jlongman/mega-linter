@@ -1,7 +1,7 @@
 
 
-ARG GITHUB_VERSION=4.26.0
-FROM jlongman/mega-linter-pylib:test as mega-linter-pylib
+ARG GITHUB_VERSION=4.33.0
+FROM jlongman/mega-linter-pylib:v$GITHUB_VERSION as mega-linter-pylib
 FROM nvuillam/mega-linter:v$GITHUB_VERSION
 
 
