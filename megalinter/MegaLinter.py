@@ -215,7 +215,7 @@ class Megalinter:
     # noinspection PyMethodMayBeStatic
     def get_workspace(self):
         default_workspace = config.get("DEFAULT_WORKSPACE", "")
-        github_workspace = config.get("GITHUB_WORKSPACE", "")
+        github_workspace = config.get("GITHUB_WORKSPACE", config.get("BITBUCKET_CLONE_DIR", ""))
         # Github action run without override of DEFAULT_WORKSPACE and using /tmp/lint
         if (
             default_workspace == ""

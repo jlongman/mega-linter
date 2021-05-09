@@ -26,14 +26,15 @@ LIST_OF_REPLACEMENTS = [
     ["/github/workspace/", ""],
     ["github/workspace/", ""],
 ]
-# Bitbucket CI
+# GitLab CI
 CI_PROJECT_DIR = os.environ.get("CI_PROJECT_DIR", "")
 if CI_PROJECT_DIR != "":
     LIST_OF_REPLACEMENTS += [[f"/{CI_PROJECT_DIR}/", ""], [f"{CI_PROJECT_DIR}/", ""]]
-# GitLab CI
-CI_PROJECT_DIR = os.environ.get("BITBUCKET_CLONE_DIR", "")
-if CI_PROJECT_DIR != "":
-    LIST_OF_REPLACEMENTS += [[f"/{CI_PROJECT_DIR}/", ""], [f"{CI_PROJECT_DIR}/", ""]]
+else:
+    # Bitbucket CI
+    CI_PROJECT_DIR = os.environ.get("BITBUCKET_CLONE_DIR", "")
+    if CI_PROJECT_DIR != "":
+        LIST_OF_REPLACEMENTS += [[f"/{CI_PROJECT_DIR}/", ""], [f"{CI_PROJECT_DIR}/", ""]]
 # Other
 DEFAULT_WORKSPACE = os.environ.get("DEFAULT_WORKSPACE", "")
 if DEFAULT_WORKSPACE != "":
